@@ -4,9 +4,9 @@
 mod lock;
 mod owner;
 
-pub use lock::Lock as Lock;
-pub use lock::ReadGuard as ReadGuard;
-pub use lock::WriteGuard as WriteGuard;
+pub use self::lock::Lock as Lock;
+pub use self::lock::ReadGuard as ReadGuard;
+pub use self::lock::WriteGuard as WriteGuard;
 
 #[cfg(test)]
 mod tests {
@@ -17,5 +17,15 @@ mod tests {
         let l = Lock::new(42);
         let _guard = l.write_exclusive();
         println!("Lock: {:?}", l);
+    }
+
+    #[test]
+    fn test_read_then_deadlock() {
+        let l = Lock::new(42);
+        let guard = l.read_shared().expect("read failed");
+        println!("value: {}", *guard);
+        l.try_write_exclusive();
+        // now, provoke deadlock
+//        l.write_exclusive();
     }
 }
