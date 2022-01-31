@@ -1,0 +1,8 @@
+[package]
+name = "rwlock_rs"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+parking_lot = { version = "0.11.2", features = ["send_guard"] }
