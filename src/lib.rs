@@ -1,12 +1,13 @@
 #![warn(missing_docs)]
 #![warn(rust_2018_idioms)]
 
+mod hash;
 mod lock;
 mod owner;
 
-pub use self::lock::Lock as Lock;
-pub use self::lock::ReadGuard as ReadGuard;
-pub use self::lock::WriteGuard as WriteGuard;
+pub use self::lock::Lock;
+pub use self::lock::ReadGuard;
+pub use self::lock::WriteGuard;
 
 #[cfg(test)]
 mod tests {
@@ -20,12 +21,30 @@ mod tests {
     }
 
     #[test]
-    fn test_read_then_deadlock() {
+    fn test_read_once_then_attempt_write() {
         let l = Lock::new(42);
         let guard = l.read_shared().expect("read failed");
         println!("value: {}", *guard);
-        l.try_write_exclusive();
-        // now, provoke deadlock
-//        l.write_exclusive();
+        let write_guard1 = l.try_write_exclusive();
+        assert!(write_guard1.is_none());
+        // now attempt an exclusive write
+        let write_guard2 = l.write_exclusive();
+        assert!(write_guard2.is_err());
+    }
+
+    #[test]
+    fn test_read_twice_then_attempt_write() {
+        let l = Lock::new(42);
+        let read_guard1 = l.read_shared().expect("read failed");
+        println!("first read: {}", *read_guard1);
+        {
+            let read_guard2 = l.read_shared().expect("read failed");
+            println!("second read: {}", *read_guard2);
+        }
+        let write_guard1 = l.try_write_exclusive();
+        assert!(write_guard1.is_none());
+        // now attempt an exclusive write
+        let write_guard2 = l.write_exclusive();
+        assert!(write_guard2.is_err());
     }
 }
