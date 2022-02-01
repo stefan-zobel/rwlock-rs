@@ -143,12 +143,6 @@ pub struct WriteGuard<'a, T: ?Sized> {
     guard: RwLockWriteGuard<'a, RawRwLock, T>,
 }
 
-impl<T> Drop for ReadGuard<'_, T> {
-    fn drop(&mut self) {
-        self.lock.remove_read_lock();
-    }
-}
-
 impl<T: ?Sized> Drop for WriteGuard<'_, T> {
     fn drop(&mut self) {
         self.lock.exclusive_owner.release_ownership();
@@ -160,6 +154,12 @@ impl<T: ?Sized> Drop for WriteGuard<'_, T> {
 pub struct ReadGuard<'a, T> {
     lock: &'a Lock<T>,
     guard: RwLockReadGuard<'a, RawRwLock, T>,
+}
+
+impl<T> Drop for ReadGuard<'_, T> {
+    fn drop(&mut self) {
+        self.lock.remove_read_lock();
+    }
 }
 
 impl<T> Deref for WriteGuard<'_, T> {
@@ -202,6 +202,6 @@ impl Debug for LockError {
 
 impl Display for LockError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Display::fmt("a lock is already owned by the current thread", f)
+        Display::fmt("a lock is already held by the current thread", f)
     }
 }
