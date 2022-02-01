@@ -3,7 +3,7 @@ use crate::owner::Owner;
 use parking_lot::lock_api::{RwLockReadGuard, RwLockWriteGuard};
 use parking_lot::{RawRwLock, RwLock};
 use std::cell::UnsafeCell;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
@@ -98,19 +98,31 @@ impl<T> Lock<T> {
     #[inline]
     pub(crate) fn is_read_lock_held(&self) -> bool {
         let read_set = Lock::<T>::get_thread_local();
-        unsafe { (*read_set).contains(&(self.get_address())) }
+        unsafe {
+            if let Some(count) = (*read_set).get_mut(&(self.get_address())) {
+                return *count > 0;
+            }
+        }
+        false
     }
 
     #[inline]
     pub(crate) fn add_read_lock(&self) {
         let read_set = Lock::<T>::get_thread_local();
-        unsafe { (*read_set).insert(self.get_address()) };
+        unsafe { *(*read_set).entry(self.get_address()).or_insert(0u64) += 1u64 };
     }
 
     #[inline]
     pub(crate) fn remove_read_lock(&self) {
         let read_set = Lock::<T>::get_thread_local();
-        unsafe { (*read_set).remove(&(self.get_address())) };
+        unsafe {
+            if let Some(count) = (*read_set).get_mut(&(self.get_address())) {
+                *count -= 1;
+                if *count == 0 {
+                    (*read_set).remove(&(self.get_address()));
+                }
+            }
+        };
     }
 
     #[inline]
@@ -119,7 +131,7 @@ impl<T> Lock<T> {
     }
 
     #[inline]
-    pub(crate) fn get_thread_local() -> *mut HashSet<u64, BytesHash> {
+    pub(crate) fn get_thread_local() -> *mut HashMap<u64, u64, BytesHash> {
         THREAD_LOCAL.with(|t| t.get())
     }
 }
@@ -173,8 +185,8 @@ impl<T> Deref for ReadGuard<'_, T> {
 }
 
 thread_local!(
-    static THREAD_LOCAL: UnsafeCell<HashSet<u64, BytesHash>> = {
-        UnsafeCell::new(HashSet::with_hasher(BytesHash::default()))
+    static THREAD_LOCAL: UnsafeCell<HashMap<u64, u64, BytesHash>> = {
+        UnsafeCell::new(HashMap::with_hasher(BytesHash::default()))
     }
 );
 
