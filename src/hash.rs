@@ -43,15 +43,11 @@ impl Default for BytesHash {
 #[cfg(test)]
 mod hash_tests {
     use super::*;
-    use std::collections::HashMap;
     use std::collections::HashSet;
 
     #[test]
-    fn test_1() {
-        let mut map = HashMap::with_hasher(BytesHash::default());
-        map.insert("hello", "world");
+    fn test_with_hash_set() {
         let mut set = HashSet::<u64, BytesHash>::with_hasher(BytesHash::default());
-        let mut set2 : HashSet<u64, BytesHash> = HashSet::with_hasher(BytesHash::default());
         set.insert(123);
         set.remove(&123);
     }
