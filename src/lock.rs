@@ -99,8 +99,8 @@ impl<T> Lock<T> {
     pub(crate) fn is_read_lock_held(&self) -> bool {
         let read_set = Lock::<T>::get_thread_local();
         unsafe {
-            if let Some(count) = (*read_set).get_mut(&(self.get_address())) {
-                return *count > 0;
+            if let Some(count) = (*read_set).get(&(self.get_address())) {
+                return *count > 0u64;
             }
         }
         false
