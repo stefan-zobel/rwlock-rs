@@ -10,8 +10,8 @@ use std::ops::Deref;
 
 #[derive(Debug)]
 pub struct Lock<T: ?Sized> {
-    // the whole point of the `exclusive_owner` field is to
-    // avoid that a writer accidentally can deadlock himself
+    // the purpose of the `exclusive_owner` field is to avoid
+    // that a writer accidentally can deadlock himself
     exclusive_owner: Owner,
     rw_lock: RwLock<T>,
 }
@@ -82,8 +82,8 @@ impl<T> Lock<T> {
 
     #[inline]
     pub fn write_exclusive(&self) -> Result<WriteGuard<'_, T>, LockError> {
-        // avoid writer thread deadlocking itself by calling
-        // `write_exclusive` twice in a row
+        // avoid thread deadlocking itself by calling `write_exclusive`
+        // twice in a row or when a read lock is already being held
         if self.is_owned_by_current_thread() || self.is_read_lock_held() {
             return Err(LockError {});
         }
