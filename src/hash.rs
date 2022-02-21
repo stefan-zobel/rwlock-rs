@@ -24,6 +24,10 @@ impl Hasher for BytesHash {
             self.hash = 31u64 * self.hash + *byte as u64;
         }
     }
+
+    fn write_u64(&mut self, i: u64) {
+        self.hash = i;
+    }
 }
 
 impl BuildHasher for BytesHash {
