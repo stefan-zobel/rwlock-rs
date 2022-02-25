@@ -1,4 +1,4 @@
-use crate::hash::BytesHash;
+use crate::hash::U64Hash;
 use crate::owner::Owner;
 use parking_lot::lock_api::{RwLockReadGuard, RwLockWriteGuard};
 use parking_lot::{RawRwLock, RwLock};
@@ -131,7 +131,7 @@ impl<T> Lock<T> {
     }
 
     #[inline]
-    pub(crate) fn get_thread_local() -> *mut HashMap<u64, u64, BytesHash> {
+    pub(crate) fn get_thread_local() -> *mut HashMap<u64, u64, U64Hash> {
         THREAD_LOCAL.with(|t| t.get())
     }
 }
@@ -185,8 +185,8 @@ impl<T> Deref for ReadGuard<'_, T> {
 }
 
 thread_local!(
-    static THREAD_LOCAL: UnsafeCell<HashMap<u64, u64, BytesHash>> = {
-        UnsafeCell::new(HashMap::with_hasher(BytesHash::default()))
+    static THREAD_LOCAL: UnsafeCell<HashMap<u64, u64, U64Hash >> = {
+        UnsafeCell::new(HashMap::with_hasher(U64Hash::default()))
     }
 );
 

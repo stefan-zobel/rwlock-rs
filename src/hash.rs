@@ -4,17 +4,17 @@
 use std::hash::{BuildHasher, Hasher};
 
 #[derive(Debug, Clone)]
-pub(crate) struct BytesHash {
+pub(crate) struct U64Hash {
     hash: u64,
 }
 
-impl BytesHash {
+impl U64Hash {
     pub(crate) fn new() -> Self {
-        BytesHash { hash: 1u64 }
+        U64Hash { hash: 1u64 }
     }
 }
 
-impl Hasher for BytesHash {
+impl Hasher for U64Hash {
     fn finish(&self) -> u64 {
         self.hash
     }
@@ -30,7 +30,7 @@ impl Hasher for BytesHash {
     }
 }
 
-impl BuildHasher for BytesHash {
+impl BuildHasher for U64Hash {
     type Hasher = Self;
 
     fn build_hasher(&self) -> Self::Hasher {
@@ -38,9 +38,9 @@ impl BuildHasher for BytesHash {
     }
 }
 
-impl Default for BytesHash {
+impl Default for U64Hash {
     fn default() -> Self {
-        BytesHash::new()
+        U64Hash::new()
     }
 }
 
@@ -51,7 +51,7 @@ mod hash_tests {
 
     #[test]
     fn test_with_hash_set() {
-        let mut set = HashSet::<u64, BytesHash>::with_hasher(BytesHash::default());
+        let mut set = HashSet::<u64, U64Hash>::with_hasher(U64Hash::default());
         set.insert(123);
         set.remove(&123);
     }
